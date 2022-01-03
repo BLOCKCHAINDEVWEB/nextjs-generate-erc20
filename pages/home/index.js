@@ -18,61 +18,50 @@ export default function Home() {
   const [isConnectedWeb3, setIsConnectedWeb3] = useState(false)
   const [nameErc20, setNameErc20] = useState('ERC20Mock')
   const [symbolErc20, setSymbolErc20] = useState('ERC20M')
-  const [totalSypplyErc20, setTotalSupplyErc20] = useState('1000')
+  const [totalSupplyEth, setTotalSupplyEth] = useState('1000')
   const [isDisabledButton, setIsDisabledButton] = useState(false)
-  const [smartContractErc20, setSmartContractErc20] = useState('0x5BD37d9831E8aF6013b141C516076F4cFe3AB8c1')
+  const [smartContractErc20, setSmartContractErc20] = useState([{ name: 'ERC20Mock', symbol: 'ERC20M', contractAddress: '0x771BbBA78cD9CB11AD7481D5F157efDa2b0dAC60', totalSupply: 10000 }])
   const [contractName, setContractName] = useState('')
   const [contractSymbol, setContractSymbol] = useState('')
   const [contractSupply, setContractSupply] = useState(0)
+  const [isLoading, setIsLoading]  = useState(false)
+
+  const NEXT_PUBLIC_KEY_DEPLOYER = process.env.NEXT_PUBLIC_KEY_DEPLOYER
+  const NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER = process.env.NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER
 
   useEffect(() => {
     if (accounts.length > 0) setIsConnectedWeb3(true)
   }, [accounts])
 
-  useEffect(async () => {
-    const contractErc20 = new ethers.Contract(smartContractErc20, Erc20Mock.abi, provider)
-    if (provider) {
-      const constractErc20Name = await contractErc20.name()
-      setContractName(constractErc20Name)
-      const constractErc20Symbol = await contractErc20.symbol()
-      setContractSymbol(constractErc20Symbol)
-      const contractErC20Supply = await contractErc20.totalSupply()
-      const contractErc20SupplyEth = ethers.utils.formatEther(BigInt(Number(contractErC20Supply)))
-      setContractSupply(parseInt(contractErc20SupplyEth))
-    }
-  }, [provider])
-
   const handleGenerateErc20 = async () => {
-    if (nameErc20 === '' || symbolErc20 === '' || totalSypplyErc20 === '') {
+    if (nameErc20 === '' || symbolErc20 === '' || totalSupplyEth === '') {
       return
     }
 
-    const totalSupplyWei = ethers.utils.parseEther(totalSypplyErc20)
-    const receiptErc20 = await fetch('./api/generate-erc20', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        abi: Erc20Mock.abi,
-        bytecode: Erc20Mock.bytecode,
-        name: nameErc20,
-        symbol: symbolErc20,
-        supply: totalSupplyWei
-      })
-    })
-    console.log(receiptErc20)
+    const provider = new ethers.providers.JsonRpcProvider('https://eth-goerli.alchemyapi.io/v2/On8ctqGnm8FciK-a4Q5FnC7btoY68uTg')
+    const signer = new ethers.Wallet(NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER, provider)
+    
+    const totalSupplyWei = ethers.utils.parseEther(totalSupplyEth)
+
+    const factory = new ethers.ContractFactory(Erc20Mock.abi, Erc20Mock.bytecode, signer)
+    const contract = await factory.deploy(nameErc20, symbolErc20, NEXT_PUBLIC_KEY_DEPLOYER, totalSupplyWei)
+    
+    setIsLoading(true)
+    const receiptErc20 = await contract.deployTransaction.wait()
+    setIsLoading(false)
+    setSmartContractErc20([...smartContractErc20, { name: nameErc20, symbol: symbolErc20, contractAddress: receiptErc20.contractAddress, totalSupply: totalSupplyEth }])
   }
 
   return (
     <section>
-      <div className={`flex flex-wrap flex-row place-items-center mx-40 ${isConnectedWeb3 ? 'mt-[118px]' : ''}`}>
-          {isConnectedWeb3 ? '' : <Button
-            className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-500 text-base font-medium text-white hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:text-sm m-10"
-            action={connectWallet}
-            content="Connect to Web3"
-          />
-          }
+      <h1 className="text-center pt-3">POC Generate Token Erc20</h1>
+      {isConnectedWeb3 ? '' : <Button
+        className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-6 py-2 bg-yellow-500 text-base font-medium text-white hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:text-sm mx-40 my-5"
+        action={connectWallet}
+        content="Connect to Web3"
+      />
+      }
+      <div className={`flex flex-wrap flex-row place-items-center mx-[90px] ${isConnectedWeb3 ? 'mt-[78px]' : ''}`}>
           <div className="w-screen pb-3">
             <label htmlFor="name" className="block text-xs text-[#2B2B2B]">Name ERC20</label>
             <div className="flex mt-1 relative rounded-md">
@@ -101,56 +90,63 @@ export default function Home() {
               <input
                 type="text"
                 className="text-xs flex-1 appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-[#008DEB] focus:border-transparent"
-                onChange={e => setTotalSupplyErc20(e.target.value)}
-                value={totalSypplyErc20}
+                onChange={e => setTotalSupplyEth(e.target.value)}
+                value={totalSupplyEth}
               />
             </div>
           </div>
           <Button
-            className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm m-10"
+            className="inline-flex justify-center w-[200px] rounded-md border border-transparent shadow-sm px-10 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm m-3"
             action={handleGenerateErc20}
-            content="Generate Erc20"
+            content={isLoading ? (<><svg className="animate-spin -ml-6 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Generate Erc20</>) : "Submit"}
             isDisabled={isDisabledButton}
           />
         </div>
-        <div className="p-3">
-          <div className="overflow-x-auto">
-            <table className="table-auto w-full">
-              <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
-                <tr>
-                  <th className="p-2 whitespace-nowrap">
-                    <div className="font-semibold text-left">Smart Contract ERC20</div>
-                  </th>
-                  <th className="p-2 whitespace-nowrap">
-                    <div className="font-semibold text-left">Token Name</div>
-                  </th>
-                  <th className="p-2 whitespace-nowrap">
-                    <div className="font-semibold text-left">Total Supply</div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-100">
-                <tr>
-                  <td className="p-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="font-medium text-gray-800">{smartContractErc20}</div>
-                    </div>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="font-medium text-gray-800">{contractName}</div>
-                    </div>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="font-medium text-gray-800">{`${contractSupply} ${contractSymbol}`}</div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {isConnectedWeb3
+          ? <div className="p-3">
+              <div className="overflow-x-auto">
+                <table className="table-auto w-full">
+                  <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
+                    <tr>
+                      <th className="p-2 whitespace-nowrap">
+                        <div className="font-semibold text-left">Smart Contract ERC20</div>
+                      </th>
+                      <th className="p-2 whitespace-nowrap">
+                        <div className="font-semibold text-center">Token Name</div>
+                      </th>
+                      <th className="p-2 whitespace-nowrap">
+                        <div className="font-semibold text-center">Total Supply</div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-gray-100">
+                    {smartContractErc20?.map((smartContract, i) => {
+                      return (
+                        <tr key={i}>
+                          <td className="p-2 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-1 font-medium text-gray-800">{smartContract.contractAddress}</div>
+                            </div>
+                          </td>
+                          <td className="p-2 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-1 text-center font-medium text-gray-800">{smartContract.symbol}</div>
+                            </div>
+                          </td>
+                          <td className="p-2 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-1 text-center font-medium text-gray-800">{`${smartContract.totalSupply} ${contractSymbol}`}</div>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          : ''
+        }
     </section>
   )
 }
