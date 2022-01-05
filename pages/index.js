@@ -126,7 +126,7 @@ export default function Home({ status, tokensErc20 }) {
           : ''
         }
         <div className={`flex flex-wrap flex-row place-items-center mx-[189px] ${isConnectedWeb3 ? 'mt-[78px]' : ''}`}>
-          <div className="w-screen ml-[65%]">
+          <div className="w-screen ml-[80%]">
             <SelectNetwork
               network={networkSelected}
               setNetwork={value => setNetworkSelected(value)}
