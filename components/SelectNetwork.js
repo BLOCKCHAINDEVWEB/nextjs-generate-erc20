@@ -7,9 +7,9 @@ const networksList = () => {
   const NEXT_PUBLIC_HOST_URL = process.env.NEXT_PUBLIC_HOST_URL
 
   const networksIconUrl = {
-    goerli: `${NEXT_PUBLIC_HOST_URL}/Ethereum_logo.png`,
-    mumbai: `${NEXT_PUBLIC_HOST_URL}/polygon-matic-logo.png`,
-    sokol: `${NEXT_PUBLIC_HOST_URL}/xdai-stake-logo.png`
+    goerli: `${NEXT_PUBLIC_HOST_URL}/eth-crypto-icon.png`,
+    mumbai: `${NEXT_PUBLIC_HOST_URL}/matic-crypto-icon.png`,
+    sokol: `${NEXT_PUBLIC_HOST_URL}/xdai-crypto-icon.png`
   }
 
   let networkArray = []
