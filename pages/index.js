@@ -200,7 +200,7 @@ export default function Home({ tokensErc20 }) {
               <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
                 <tr>
                   <th className="p-2 whitespace-nowrap">
-                    <div className="font-semibold text-left ml-8">Smart Contract ERC20</div>
+                    <div className="font-semibold text-center">Smart Contract ERC20</div>
                   </th>
                   <th className="p-2 whitespace-nowrap">
                     <div className="font-semibold text-center">Network</div>
@@ -218,7 +218,7 @@ export default function Home({ tokensErc20 }) {
                   <tr key={i}>
                     <td className="p-2 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-1 font-medium text-gray-800">
+                        <div className="flex-1 text-center font-medium text-gray-800">
                           <a
                             href={`${NETWORKS_LIST[token.token_network].blockExplorerUrls}/address/${token.contract_address}`}
                             className="underline text-blue-800 mr-3"
@@ -228,7 +228,7 @@ export default function Home({ tokensErc20 }) {
                           >
                             ↗️
                           </a>
-                          {token.contract_address}
+                          {`${token.contract_address.substring(0, 12)}...${token.contract_address.substring(token.contract_address.length - 5)}`}
                         </div>
                       </div>
                     </td>
@@ -244,7 +244,7 @@ export default function Home({ tokensErc20 }) {
                     </td>
                     <td className="p-2 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-1 text-center font-medium text-green-800">
+                        <div className="flex-1 text-center font-medium text-gray-800">
                           {`${parseInt(ethers.utils.formatEther(token.total_supply))} ${token.token_symbol}`}
                         </div>
                       </div>

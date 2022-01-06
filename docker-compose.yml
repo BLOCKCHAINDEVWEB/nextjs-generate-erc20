@@ -2,14 +2,14 @@ version: "3.8"
 
 services:
   postgres:
-    container_name: next_postgres
+    container_name: pg_tokensERC20
     image: postgres
     restart: always
     environment:
       - DATABASE_HOST=127.0.0.1
-      - POSTGRES_USER=root
+      - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=tokens
+      - POSTGRES_DB=development
     ports:
       - 5432:5432
 

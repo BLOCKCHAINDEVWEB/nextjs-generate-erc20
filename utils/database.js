@@ -4,11 +4,11 @@ let db
 
 if (!db) {
   db = new Pool({
-    user: 'root',
+    user: 'admin',
     password: 'password',
     host: 'localhost',
     port: 5432,
-    database: 'tokens',
+    database: 'development',
   })
 }
 

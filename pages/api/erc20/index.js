@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
   if (method === "GET") {
     try {
-      const query = 'SELECT * FROM erc20'
+      const query = 'SELECT * FROM tokensERC20'
       const receipt = await db.query(query)
 
       return res.status(200).json({ status: 'success', tokensErc20: receipt.rows })
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     try {
       const { contract_address, token_network, token_name, token_symbol, total_supply, sender_address, token_description } = body
 
-      const query = 'INSERT INTO erc20(contract_address, token_network, token_name, token_symbol, total_supply, sender_address, token_description) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *'
+      const query = 'INSERT INTO tokensERC20(contract_address, token_network, token_name, token_symbol, total_supply, sender_address, token_description) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *'
       const values = [contract_address, token_network, token_name, token_symbol, total_supply, sender_address, token_description]
 
       const receipt = await db.query(query, values)
