@@ -3,17 +3,17 @@ import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, SelectorIcon } from '@heroicons/react/solid'
 
 const networksList = () => {
-  const NEXT_PUBLIC_NETWORK_WHITELIST = process.env.NEXT_PUBLIC_NETWORK_WHITELIST
-  const NEXT_PUBLIC_HOST_URL = process.env.NEXT_PUBLIC_HOST_URL
+  const NETWORKS_WHITELIST = process.env.NEXT_PUBLIC_NETWORKS_WHITELIST
 
   const networksIconUrl = {
-    goerli: `${NEXT_PUBLIC_HOST_URL}/eth-crypto-icon.png`,
-    mumbai: `${NEXT_PUBLIC_HOST_URL}/matic-crypto-icon.png`,
-    sokol: `${NEXT_PUBLIC_HOST_URL}/xdai-crypto-icon.png`
+    goerli: `./img/eth-crypto-icon.png`,
+    mumbai: `./img/matic-crypto-icon.png`,
+    sokol: `./img/xdai-crypto-icon.png`,
   }
 
   let networkArray = []
-  NEXT_PUBLIC_NETWORK_WHITELIST.split(',').map((network, i) => {
+
+  NETWORKS_WHITELIST.split(',').map((network, i) => {
     networkArray.push({ id: ++i, name: network, icon: networksIconUrl[network] || '' })
   })
 

@@ -4,12 +4,13 @@ import { useRouter } from 'next/router'
 import { ethers } from 'ethers'
 
 import useWeb3 from '../lib/useWeb3'
+import { getTokens } from '../lib/db/queries'
 import Erc20Mock from '../smart-contract-abi/ERC20Mock.json'
 import { Button } from '../components/Button'
 import { SelectNetwork } from '../components/SelectNetwork'
-import { NETWORKS_LIST, CHAINS_ID_TO_NETWORKS_LIST } from '../utils/networksList'
+import { NETWORKS_LIST, CHAINS_ID_TO_NETWORKS_LIST } from '../constants/networksList'
 
-export default function Home({ tokensErc20 }) {
+export default function Home({ tokens }) {
   const router = useRouter()
 
   const {
@@ -28,12 +29,11 @@ export default function Home({ tokensErc20 }) {
   const [isDisabledButton, setIsDisabledButton] = useState(true)
   const [isLoading, setIsLoading]  = useState(false)
 
-  const NEXT_PUBLIC_KEY_DEPLOYER = process.env.NEXT_PUBLIC_KEY_DEPLOYER
-  const NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER = process.env.NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER
-  const NEXT_PUBLIC_GOERLI_PROVIDER_URL = process.env.NEXT_PUBLIC_GOERLI_PROVIDER_URL
-  const NEXT_PUBLIC_SOKOL_PROVIDER_URL = process.env.NEXT_PUBLIC_SOKOL_PROVIDER_URL
-  const NEXT_PUBLIC_MUMBAI_PROVIDER_URL = process.env.NEXT_PUBLIC_MUMBAI_PROVIDER_URL
-  const NEXT_PUBLIC_HOST_URL = process.env.NEXT_PUBLIC_HOST_URL
+  const KEY_DEPLOYER = process.env.NEXT_PUBLIC_KEY_DEPLOYER
+  const PRIVATE_KEY_DEPLOYER = process.env.NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER
+  const GOERLI_PROVIDER_URL = process.env.NEXT_PUBLIC_GOERLI_PROVIDER_URL
+  const SOKOL_PROVIDER_URL = process.env.NEXT_PUBLIC_SOKOL_PROVIDER_URL
+  const MUMBAI_PROVIDER_URL = process.env.NEXT_PUBLIC_MUMBAI_PROVIDER_URL
 
   // refresh props!
   const refreshData = () => {
@@ -51,7 +51,7 @@ export default function Home({ tokensErc20 }) {
   }, [accounts, chainIdUsed])
 
   const createToken = async token => {
-    const res = await fetch(`${NEXT_PUBLIC_HOST_URL}/api/erc20`, {
+    const res = await fetch(`/api/erc20`, {
       method: 'POST',
       headers: {
         "Content-Type": "application/json",
@@ -82,14 +82,14 @@ export default function Home({ tokensErc20 }) {
     if (tokenName === '' || tokenSymbol === '' || totalSupplyEth === '') {
       return
     }
-    const provider = new ethers.providers.JsonRpcProvider(eval(`NEXT_PUBLIC_${networkSelected.toUpperCase()}_PROVIDER_URL`))
+    const provider = new ethers.providers.JsonRpcProvider(eval(`${networkSelected.toUpperCase()}_PROVIDER_URL`))
 
-    const signer = new ethers.Wallet(NEXT_PUBLIC_PRIVATE_KEY_DEPLOYER, provider)
+    const signer = new ethers.Wallet(PRIVATE_KEY_DEPLOYER, provider)
     
     const totalSupplyWei = BigInt(Number(ethers.utils.parseEther(totalSupplyEth))).toString()
  
     const factory = new ethers.ContractFactory(Erc20Mock.abi, Erc20Mock.bytecode, signer)
-    const contract = await factory.deploy(tokenName, tokenSymbol, NEXT_PUBLIC_KEY_DEPLOYER, totalSupplyWei)
+    const contract = await factory.deploy(tokenName, tokenSymbol, KEY_DEPLOYER, totalSupplyWei)
     
     setIsLoading(true)
     const receiptErc20 = await contract.deployTransaction.wait()
@@ -214,7 +214,7 @@ export default function Home({ tokensErc20 }) {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {tokensErc20.map((token, i) => 
+                {tokens.map((token, i) => 
                   <tr key={i}>
                     <td className="p-2 whitespace-nowrap">
                       <div className="flex items-center">
@@ -223,8 +223,7 @@ export default function Home({ tokensErc20 }) {
                             href={`${NETWORKS_LIST[token.token_network].blockExplorerUrls}/address/${token.contract_address}`}
                             className="underline text-blue-800 mr-3"
                             target="_blank"
-                            rel="noreferrer"
-                            rel="noopener"
+                            rel="noreferrer noopener"
                           >
                             ↗️
                           </a>
@@ -261,14 +260,11 @@ export default function Home({ tokensErc20 }) {
 }
 
 export const getServerSideProps = async context => {
-  const NEXT_PUBLIC_HOST_URL = process.env.NEXT_PUBLIC_HOST_URL
-
-  const res = await fetch(`${NEXT_PUBLIC_HOST_URL}/api/erc20`)
-  const receipt = await res.json()
-
-  const { status, tokensErc20 } = receipt
+  const tokens = await getTokens()
 
   return {
-    props: { status, tokensErc20 }
+    props: {
+      tokens: JSON.parse(JSON.stringify(tokens))
+    }
   }
 }
